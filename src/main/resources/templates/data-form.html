@@ -23,19 +23,21 @@
             <h2>数据管理</h2>
             <div>
                 <span class="me-3">欢迎, <span th:text="${user.username}"></span></span>
-                <a href="/logout" class="btn btn-outline-secondary btn-sm">退出</a>
+                <a href="/mmdemo/login" class="btn btn-outline-secondary btn-sm">退出</a>
             </div>
         </div>
 
         <div class="container">
             <div class="d-flex justify-content-between mb-3">
                 <h4 th:text="${data.id != null ? '编辑数据' : '添加数据'}"></h4>
-                <a href="/data" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> 返回列表</a>
+                <!-- 修改返回列表的链接 -->
+<a th:href="@{/data}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> 返回列表</a>
             </div>
 
             <div class="card">
                 <div class="card-body">
-                    <form th:action="${data.id != null ? '/data/edit/' + data.id : '/data/add'}" method="post" th:object="${data}">
+                    <!-- 修改表单提交的地址 -->
+                    <form th:action="@{${data.id != null ? '/data/edit/' + data.id : '/data/add'}}" method="post" th:object="${data}">
                         <div class="mb-3">
                             <label for="name" class="form-label">名称</label>
                             <input type="text" class="form-control" id="name" th:field="*{name}" required>

@@ -51,11 +51,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean authenticate(String username, String password) {
-        User user = userDao.findByUsername(username);
-        if (user != null) {
-            // 在实际项目中，这里应该对密码进行加密比对
-            return user.getPassword().equals(password) && user.isActive();
+        User user = findByUsername(username);
+        if (user == null || user.getPassword() == null) {
+            return false;
         }
-        return false;
+        return user.getPassword().equals(password);
     }
 }

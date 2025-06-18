@@ -39,7 +39,7 @@
 
             <div th:if="${error}" class="error-message" th:text="${error}"></div>
 
-            <form action="/login" method="post">
+            <form action="/mmdemo/login" method="post">
                 <div class="mb-3">
                     <label for="username" class="form-label">用户名</label>
                     <input type="text" class="form-control" id="username" name="username" required>
@@ -48,8 +48,19 @@
                     <label for="password" class="form-label">密码</label>
                     <input type="password" class="form-control" id="password" name="password" required>
                 </div>
-                <button type="submit" class="btn btn-primary btn-login">登录</button>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-login">
+                        <i class="fas fa-sign-in-alt"></i> 登录
+                    </button>
+                    <a th:href="@{/users/register}" class="btn btn-outline-primary">
+                        <i class="fas fa-user-plus"></i> 注册新用户
+                    </a>
+                </div>
             </form>
+            <!-- 添加注册成功提示 -->
+            <div th:if="${param.registered}" class="alert alert-success mt-3" role="alert">
+                注册成功！请使用新账号登录。
+            </div>
         </div>
     </div>
 </body>
