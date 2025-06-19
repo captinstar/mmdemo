@@ -1,168 +1,128 @@
 package org.cssic.mmdemo.controller;
 
-import org.cssic.mmdemo.model.DataEntity;
-import org.cssic.mmdemo.model.User;
-import org.cssic.mmdemo.service.DataService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
+import org.cssic.mmdemo.model.DataEntity;
+import org.cssic.mmdemo.service.DataService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 
-@Controller
-@RequestMapping("/data")
+@RestController
+@RequestMapping("/api/data")
 public class DataController {
     
-    private final Logger logger = LoggerFactory.getLogger(DataController.class);
-    private final DataService dataService;
-
     @Autowired
-    public DataController(DataService dataService) {
-        this.dataService = dataService;
-    }
+    private DataService dataService;
 
-    @GetMapping("")
-    public String list(Model model, HttpSession session) {
-        // 用户身份验证逻辑重复
-        User user = (User) session.getAttribute("user");
-        if (user == null) {
-            return "redirect:/login";
-        }
-        
-        List<DataEntity> dataList = dataService.findAll();
-        model.addAttribute("dataList", dataList);
-        return "data-list";
-    }
-
-    @GetMapping("/add")
-    public String showAddForm(Model model, HttpSession session) {
-        User user = (User) session.getAttribute("user");
-        if (user == null) {
-            return "redirect:/login";
-        }
-        
-        model.addAttribute("data", new DataEntity());
-        model.addAttribute("user", user);  // 添加这行
-        return "data-form";
-    }
-
-    @PostMapping("/add")
-    public String add(@ModelAttribute DataEntity data, HttpSession session) {
-        // 用户身份验证逻辑重复
-        User user = (User) session.getAttribute("user");
-        if (user == null) {
-            return "redirect:/login";
-        }
-        
+    // 获取数据列表
+    @GetMapping
+    public ResponseEntity<Map<String, Object>> getAllData() {
+        Map<String, Object> response = new HashMap<>();
         try {
-            data.setCreatedBy(user.getId());
-            data.setCreatedDate(new Date());
-            dataService.save(data);
-            return "redirect:/data?success=true";
+            List<DataEntity> dataList = dataService.findAll();
+            // 打印返回的数据，用于调试
+            System.out.println("Returning data list: " + dataList);
+            response.put("success", true);
+            response.put("data", dataList);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            logger.error("添加数据时发生错误", e);
-            return "redirect:/data/add?error=true";
+            e.printStackTrace(); // 打印完整的错误栈，便于调试
+            response.put("success", false);
+            response.put("message", "获取数据失败：" + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         }
     }
 
-    @GetMapping("/view/{id}")
-    public String view(@PathVariable Long id, Model model, HttpSession session) {
-        // 用户身份验证逻辑重复
-        User user = (User) session.getAttribute("user");
-        if (user == null) {
-            return "redirect:/login";
+    // 获取单个数据项
+    @GetMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> getData(@PathVariable Long id) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            DataEntity data = dataService.findById(id);
+            if (data != null) {
+                response.put("success", true);
+                response.put("data", data);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "数据不存在");
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "获取数据失败：" + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         }
-        
-        DataEntity data = dataService.findById(id);
-        if (data == null) {
-            return "redirect:/data?error=not_found";
-        }
-        
-        model.addAttribute("data", data);
-        model.addAttribute("canModify", 
-    Objects.equals(data.getCreatedBy(), user.getId()) || "ADMIN".equals(user.getRole()));
-        return "data-view";
     }
 
-    @GetMapping("/edit/{id}")
-    public String showEditForm(@PathVariable Long id, Model model, HttpSession session) {
-        // 用户身份验证逻辑重复
-        User user = (User) session.getAttribute("user");
-        if (user == null) {
-            return "redirect:/login";
+    // 创建新数据
+    @PostMapping
+    public ResponseEntity<Map<String, Object>> createData(
+            @RequestBody DataEntity data,
+            HttpSession session) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            // 设置创建者和创建时间
+            Object userId = session.getAttribute("userId");
+            data.setCreatedBy(userId != null ? (Long) userId : 1L);
+            data.setCreatedDate(new Date());
+
+            DataEntity savedData = dataService.save(data);
+            response.put("success", true);
+            response.put("data", savedData);
+            response.put("message", "数据创建成功");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "创建数据失败：" + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         }
-        
-        DataEntity data = dataService.findById(id);
-        if (data == null) {
-            return "redirect:/data?error=not_found";
-        }
-        
-        if (!data.getCreatedBy().equals(user.getId()) && !"ADMIN".equals(user.getRole())) {
-            return "redirect:/data?error=access_denied";
-        }
-        
-        model.addAttribute("data", data);
-        return "data-form";
     }
 
-    @PostMapping("/edit/{id}")
-    public String edit(@PathVariable Long id, @ModelAttribute DataEntity data, HttpSession session) {
-        // 用户身份验证逻辑重复
-        User user = (User) session.getAttribute("user");
-        if (user == null) {
-            return "redirect:/login";
-        }
-        
-        DataEntity existingData = dataService.findById(id);
-        if (existingData == null) {
-            return "redirect:/data?error=not_found";
-        }
-        
-        if (!existingData.getCreatedBy().equals(user.getId()) && !"ADMIN".equals(user.getRole())) {
-            return "redirect:/data?error=access_denied";
-        }
-        
+    // 更新数据
+    @PutMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> updateData(
+            @PathVariable Long id,
+            @RequestBody DataEntity data) {
+        Map<String, Object> response = new HashMap<>();
         try {
             data.setId(id);
-            data.setCreatedBy(existingData.getCreatedBy());
-            data.setCreatedDate(new Date());
-            dataService.update(data);
-            return "redirect:/data?success=true";
+            DataEntity updatedData = dataService.update(data);
+            if (updatedData != null) {
+                response.put("success", true);
+                response.put("data", updatedData);
+                response.put("message", "数据更新成功");
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "数据不存在");
+                return ResponseEntity.notFound().build();
+            }
         } catch (Exception e) {
-            logger.error("更新数据时发生错误", e);
-            return "redirect:/data/edit/" + id + "?error=true";
+            response.put("success", false);
+            response.put("message", "更新数据失败：" + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         }
     }
 
-    @GetMapping("/delete/{id}")
-    public String delete(@PathVariable Long id, HttpSession session) {
-        // 用户身份验证逻辑重复
-        User user = (User) session.getAttribute("user");
-        if (user == null) {
-            return "redirect:/login";
-        }
-        
-        DataEntity data = dataService.findById(id);
-        if (data == null) {
-            return "redirect:/data?error=not_found";
-        }
-        
-        if (!data.getCreatedBy().equals(user.getId()) && !"ADMIN".equals(user.getRole())) {
-            return "redirect:/data?error=access_denied";
-        }
-        
+    // 删除数据
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> deleteData(@PathVariable Long id) {
+        Map<String, Object> response = new HashMap<>();
         try {
             dataService.delete(id);
-            return "redirect:/data?success=true";
+            response.put("success", true);
+            response.put("message", "数据删除成功");
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            logger.error("删除数据时发生错误, id: {}", id, e);
-            return "redirect:/data?error=true";
+            response.put("success", false);
+            response.put("message", "删除数据失败：" + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         }
     }
 }

@@ -1,67 +1,74 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html>
 <head>
     <meta charset="UTF-8">
     <title>登录</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
-        body {
-            background-color: #f5f5f5;
-        }
-        .login-container {
-            max-width: 400px;
-            margin: 100px auto;
-            padding: 30px;
-            background-color: #fff;
-            border-radius: 5px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        .login-title {
-            text-align: center;
-            margin-bottom: 30px;
-            color: #333;
-        }
-        .btn-login {
-            width: 100%;
-            margin-top: 20px;
-        }
-        .error-message {
-            color: #dc3545;
-            margin-top: 15px;
-            text-align: center;
-        }
+        /* 保持原有样式 */
     </style>
 </head>
 <body>
     <div class="container">
         <div class="login-container">
             <h2 class="login-title">系统登录</h2>
+            <div class="error-message" id="errorMessage" style="display: none;"></div>
 
-            <div th:if="${error}" class="error-message" th:text="${error}"></div>
-
-            <form action="/mmdemo/login" method="post">
+            <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="mb-3">
                     <label for="username" class="form-label">用户名</label>
-                    <input type="text" class="form-control" id="username" name="username" required>
+                    <input class="form-control" id="username" required type="text">
                 </div>
                 <div class="mb-3">
                     <label for="password" class="form-label">密码</label>
-                    <input type="password" class="form-control" id="password" name="password" required>
+                    <input class="form-control" id="password" required type="password">
                 </div>
                 <div class="d-grid gap-2">
                     <button type="submit" class="btn btn-primary btn-login">
                         <i class="fas fa-sign-in-alt"></i> 登录
                     </button>
-                    <a th:href="@{/users/register}" class="btn btn-outline-primary">
+                    <a class="btn btn-outline-primary" href="/register">
                         <i class="fas fa-user-plus"></i> 注册新用户
                     </a>
                 </div>
             </form>
-            <!-- 添加注册成功提示 -->
-            <div th:if="${param.registered}" class="alert alert-success mt-3" role="alert">
+            <div class="alert alert-success mt-3" id="registerSuccess" role="alert" style="display: none;">
                 注册成功！请使用新账号登录。
             </div>
         </div>
     </div>
+
+    <script>
+        async function handleLogin(event) {
+            event.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                // 在login.html中修改axios请求路径
+                const response = await axios.post('/mmdemo/api/login', {
+                    username: username,
+                    password: password
+                });
+
+                // 在login.html中的handleLogin函数中修改重定向路径
+                if (response.data.success) {
+                    window.location.href = '/mmdemo/dashboard';  // 添加上下文路径
+                }
+            } catch (error) {
+                const errorMessage = error.response?.data?.message || '登录失败，请重试';
+                document.getElementById('errorMessage').textContent = errorMessage;
+                document.getElementById('errorMessage').style.display = 'block';
+            }
+        }
+
+        // 检查URL参数显示注册成功消息
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('registered')) {
+            document.getElementById('registerSuccess').style.display = 'block';
+        }
+    </script>
 </body>
 </html>
