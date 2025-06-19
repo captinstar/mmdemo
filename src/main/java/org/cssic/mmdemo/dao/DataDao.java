@@ -9,7 +9,9 @@ public interface DataDao {
     List<DataEntity> findByCategory(String category);
     List<DataEntity> findByCreatedBy(Long userId);
     List<DataEntity> findAll();
-    void save(DataEntity data);
-    void update(DataEntity data);
+
+    DataEntity save(DataEntity data);
+
+    DataEntity update(DataEntity data);
     void delete(Long id);
 }

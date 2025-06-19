@@ -40,16 +40,16 @@ public class DataServiceImpl implements DataService {
     }
 
     @Override
-    public void save(DataEntity data) {
+    public DataEntity save(DataEntity data) {
         if (data.getCreatedDate() == null) {
             data.setCreatedDate(new Date());
         }
-        dataDao.save(data);
+        return dataDao.save(data);  // 返回保存后的实体
     }
 
     @Override
-    public void update(DataEntity data) {
-        dataDao.update(data);
+    public DataEntity update(DataEntity data) {
+        return dataDao.update(data);  // 返回更新后的实体
     }
 
     @Override
