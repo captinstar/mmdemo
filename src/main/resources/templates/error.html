@@ -39,6 +39,33 @@
                 </a>
             </div>
         </div>
+        <!-- 新增的 DeepSeek 错误分析面板 -->
+        <div class="analysis-panel" id="deepseekAnalysis" style="display: none;">
+            <h3>DeepSeek 错误分析</h3>
+            <div class="analysis-content">
+                <pre id="analysisResult"></pre>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .analysis-panel {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+
+        .analysis-content {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: white;
+            border: 1px solid #eee;
+            border-radius: 3px;
+        }
+    </style>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="static/js/api-config.js"></script>

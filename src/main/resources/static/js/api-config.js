@@ -7,6 +7,9 @@ const API_CONFIG = {
     baseURL: `${BASE_PATH}/api`,
     headers: {
         'Content-Type': 'application/json'
+    },
+    errorAnalysis: {
+        fetch: `${BASE_PATH}/api/error/analysis`,
     }
 };
 
@@ -80,5 +83,31 @@ window.API = {
     showError,
     showSuccess,
     showLoading,
-    hideLoading
+    hideLoading,
+
+    // 获取 DeepSeek 错误分析结果
+    async fetchErrorAnalysis() {
+        try {
+            const response = await makeRequest(API_CONFIG.errorAnalysis.fetch, {}, 'GET');
+            const analysisPanel = document.getElementById('deepseekAnalysis');
+            const analysisResult = document.getElementById('analysisResult');
+
+            if (response.analysis) {
+                analysisResult.textContent = response.analysis;
+                analysisPanel.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('获取错误分析失败:', error);
+        }
+    },
+
+    // 扩展错误处理函数
+    handleError(error) {
+        // 原有的错误处理逻辑
+        const message = error.response?.data?.message || '操作失败';
+        showError(message);
+
+        // 触发错误分析
+        this.fetchErrorAnalysis();
+    }
 };
