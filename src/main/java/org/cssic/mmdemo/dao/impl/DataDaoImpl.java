@@ -2,18 +2,23 @@ package org.cssic.mmdemo.dao.impl;
 
 import org.cssic.mmdemo.dao.DataDao;
 import org.cssic.mmdemo.model.DataEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.List;
 
 @Repository
 public class DataDaoImpl implements DataDao {
-
+    private static final String FIND_BY_ID_SQL = "SELECT * FROM data_entities WHERE id = ?";
+    private static final Logger logger = LoggerFactory.getLogger(DataDaoImpl.class);
+    
     private final JdbcTemplate jdbcTemplate;
 
     @Autowired
@@ -65,17 +70,37 @@ public class DataDaoImpl implements DataDao {
     }
 
     @Override
-    public void save(DataEntity data) {
+    public DataEntity save(DataEntity data) {
         String sql = "INSERT INTO data_entities (name, description, value, category, created_by, created_date) " +
                 "VALUES (?, ?, ?, ?, ?, ?)";
-        jdbcTemplate.update(sql, data.getName(), data.getDescription(), data.getValue(), 
-                data.getCategory(), data.getCreatedBy(), new java.sql.Timestamp(data.getCreatedDate().getTime()));
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, data.getName());
+            ps.setString(2, data.getDescription());
+            ps.setString(3, data.getValue());
+            ps.setString(4, data.getCategory());
+            ps.setLong(5, data.getCreatedBy());
+            ps.setTimestamp(6, new Timestamp(data.getCreatedDate().getTime()));
+            return ps;
+        }, keyHolder);
+
+        data.setId(keyHolder.getKey().longValue());
+        return data;
     }
 
     @Override
-    public void update(DataEntity data) {
+    public DataEntity update(DataEntity data) {
         String sql = "UPDATE data_entities SET name = ?, description = ?, value = ?, category = ? WHERE id = ?";
-        jdbcTemplate.update(sql, data.getName(), data.getDescription(), data.getValue(), data.getCategory(), data.getId());
+        int rowsAffected = jdbcTemplate.update(sql,
+                data.getName(),
+                data.getDescription(),
+                data.getValue(),
+                data.getCategory(),
+                data.getId()
+        );
+
+        return rowsAffected > 0 ? findById(data.getId()) : null;
     }
 
     @Override

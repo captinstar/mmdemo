@@ -9,7 +9,9 @@ public interface DataService {
     List<DataEntity> findByCategory(String category);
     List<DataEntity> findByCreatedBy(Long userId);
     List<DataEntity> findAll();
-    void save(DataEntity data);
-    void update(DataEntity data);
+
+    DataEntity save(DataEntity data);    // 改为返回 DataEntity
+
+    DataEntity update(DataEntity data);  // 改为返回 DataEntity
     void delete(Long id);
 }

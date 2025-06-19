@@ -34,14 +34,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void save(User user) {
+    public User save(User user) {
         // 在实际项目中，这里应该对密码进行加密处理
         userDao.save(user);
+        return user;
     }
 
     @Override
-    public void update(User user) {
+    public User update(User user) {
         userDao.update(user);
+        return user;
     }
 
     @Override

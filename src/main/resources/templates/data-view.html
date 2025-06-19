@@ -1,84 +1,93 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="">
+<html>
 <head>
     <meta charset="UTF-8">
     <title>查看数据</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        .header {
-            background-color: #f8f9fa;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #dee2e6;
-        }
-        .card {
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        .data-value {
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 10px;
-            word-break: break-all;
-        }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 <body>
     <div class="container-fluid">
-        <div class="header d-flex justify-content-between align-items-center">
-            <h2>数据管理</h2>
-            <div>
-                <span class="me-3">欢迎, <span th:text="${user.username}"></span></span>
-                <a href="/logout" class="btn btn-outline-secondary btn-sm">退出</a>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+            <div class="container">
+                <a class="navbar-brand" href="/dashboard">系统控制台</a>
+                <div class="navbar-text text-light">
+                    欢迎回来, <span id="username"></span>
+                </div>
             </div>
-        </div>
+        </nav>
 
         <div class="container">
             <div class="d-flex justify-content-between mb-3">
                 <h4>数据详情</h4>
                 <div>
-                    <a href="/data" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> 返回列表</a>
-                    <a th:if="${canModify}" th:href="@{/data/edit/{id}(id=${data.id})}" class="btn btn-warning"><i class="fas fa-edit"></i> 编辑</a>
+                    <a class="btn btn-secondary me-2" href="/data">返回列表</a>
+                    <button class="btn btn-warning" id="editBtn" style="display: none;">
+                        <i class="fas fa-edit"></i> 编辑
+                    </button>
                 </div>
             </div>
 
+            <div class="alert alert-danger" id="errorMessage" style="display: none;"></div>
+
             <div class="card">
                 <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <strong>ID:</strong> <span th:text="${data.id}"></span>
-                        </div>
-                        <div class="col-md-6">
-                            <strong>类别:</strong> <span th:text="${data.category}"></span>
-                        </div>
-                    </div>
+                    <dl class="row">
+                        <dt class="col-sm-3">ID</dt>
+                        <dd class="col-sm-9" id="dataId"></dd>
 
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <strong>名称:</strong> <span th:text="${data.name}"></span>
-                        </div>
-                        <div class="col-md-6">
-                            <strong>创建时间:</strong> <span th:text="${#dates.format(data.createdDate, 'yyyy-MM-dd HH:mm:ss')}"></span>
-                        </div>
-                    </div>
+                        <dt class="col-sm-3">名称</dt>
+                        <dd class="col-sm-9" id="dataName"></dd>
 
-                    <div class="mb-3">
-                        <strong>描述:</strong>
-                        <p th:text="${data.description}"></p>
-                    </div>
+                        <dt class="col-sm-3">类别</dt>
+                        <dd class="col-sm-9" id="dataCategory"></dd>
 
-                    <div>
-                        <strong>数据值:</strong>
-                        <div class="data-value">
-                            <pre th:text="${data.value}"></pre>
-                        </div>
-                    </div>
+                        <dt class="col-sm-3">创建时间</dt>
+                        <dd class="col-sm-9" id="dataCreatedDate"></dd>
+
+                        <dt class="col-sm-3">描述</dt>
+                        <dd class="col-sm-9" id="dataDescription"></dd>
+
+                        <dt class="col-sm-3">数据值</dt>
+                        <dd class="col-sm-9">
+                            <pre class="bg-light p-3 rounded" id="dataValue"></pre>
+                        </dd>
+                    </dl>
                 </div>
             </div>
         </div>
     </div>
+    <script src="static/js/api-config.js"></script>
+    <script>
+        const dataId = new URLSearchParams(window.location.search).get('id');
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        async function loadData() {
+            try {
+                const response = await API.makeRequest('/data/detail', {id: dataId});
+                if (response.success) {
+                    renderData(response.data);
+                }
+            } catch (error) {
+                // 错误处理已由 API.handleError 处理
+            }
+        }
+
+        function renderData(data) {
+            document.getElementById('dataId').textContent = data.id;
+            document.getElementById('dataName').textContent = data.name;
+            document.getElementById('dataCategory').textContent = data.category;
+            document.getElementById('dataCreatedDate').textContent = new Date(data.createdDate).toLocaleString();
+            document.getElementById('dataDescription').textContent = data.description || '无';
+            document.getElementById('dataValue').textContent = JSON.stringify(data.value, null, 2);
+
+            if (data.canEdit) {
+                document.getElementById('editBtn').style.display = 'inline-block';
+        }
+        }
+
+        // 页面加载时执行
+        loadData();
+    </script>
 </body>
 </html>
