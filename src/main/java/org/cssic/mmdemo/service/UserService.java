@@ -8,8 +8,10 @@ public interface UserService {
     User findById(Long id);
     User findByUsername(String username);
     List<User> findAll();
-    void save(User user);
-    void update(User user);
+
+    User save(User user);
+
+    User update(User user);
     void delete(Long id);
     boolean authenticate(String username, String password);
 }

@@ -1,7 +1,7 @@
 package org.cssic.mmdemo.controller;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -12,7 +12,7 @@ import java.util.Map;
 @RequestMapping("/api/statistics")
 public class StatisticsController {
 
-    @GetMapping
+    @PostMapping  // 改为POST请求
     public ResponseEntity<Map<String, Object>> getStatistics() {
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);

@@ -6,27 +6,26 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <style>
-        /* 保持原有样式 */
-    </style>
 </head>
 <body>
     <div class="container-fluid">
-        <div class="header d-flex justify-content-between align-items-center">
-            <h2>数据管理</h2>
-            <div>
-                <span class="me-3">欢迎, <span id="username"></span></span>
-                <a class="btn btn-outline-secondary btn-sm" href="#" onclick="handleLogout(event)">退出</a>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container">
+                <a class="navbar-brand" href="/dashboard">系统控制台</a>
+                <div class="navbar-text text-light">
+                    欢迎, <span id="username"></span>
+                </div>
             </div>
-        </div>
+        </nav>
 
-        <div class="container">
+        <div class="container mt-4">
             <div class="d-flex justify-content-between mb-3">
                 <h4 id="formTitle">添加数据</h4>
-                <a class="btn btn-secondary" href="/data"><i class="fas fa-arrow-left"></i> 返回列表</a>
+                <a class="btn btn-secondary" href="/data">返回列表</a>
             </div>
 
-            <div class="alert alert-danger" id="errorMessage" role="alert" style="display: none;"></div>
+            <div class="alert alert-danger" id="errorMessage" style="display: none;"></div>
+            <div class="alert alert-success" id="successMessage" style="display: none;"></div>
 
             <div class="card">
                 <div class="card-body">
@@ -61,56 +60,30 @@
             </div>
         </div>
     </div>
-
+    <script src="static/js/api-config.js"></script>
     <script>
-        // 在script标签中添加
-        const API_BASE_URL = '/mmdemo/api';
-        const urlParams = new URLSearchParams(window.location.search);
-        const dataId = urlParams.get('id');
-
-        // 在script标签中添加
-        async function loadUserInfo() {
-            try {
-                const response = await axios.get(`${API_BASE_URL}/check-auth`);
-                if (response.data.success && response.data.user) {
-                    document.getElementById('username').textContent = response.data.user.username;
-                }
-            } catch (error) {
-                if (error.response?.status === 401) {
-                    window.location.href = '/mmdemo/login';
-                }
-            }
-        }
+        const dataId = new URLSearchParams(window.location.search).get('id');
 
         async function loadData() {
             if (dataId) {
                 try {
-                    const response = await axios.get(`${API_BASE_URL}/data/${dataId}`);
-                    const data = response.data.data;
-
-                    if (data) {  // 添加数据存在性检查
+                    const response = await API.makeRequest('/data/detail', {id: dataId});
+                    if (response.success && response.data) {
                         document.getElementById('formTitle').textContent = '编辑数据';
-                        document.getElementById('dataId').value = data.id || '';
-                        document.getElementById('name').value = data.name || '';
-                        document.getElementById('category').value = data.category || '';
-                        document.getElementById('description').value = data.description || '';
-                        document.getElementById('value').value = data.value || '';
-                    } else {
-                        showError('数据不存在');
+                        document.getElementById('dataId').value = response.data.id || '';
+                        document.getElementById('name').value = response.data.name || '';
+                        document.getElementById('category').value = response.data.category || '';
+                        document.getElementById('description').value = response.data.description || '';
+                        document.getElementById('value').value = response.data.value || '';
                     }
                 } catch (error) {
-                    if (error.response?.status === 401) {
-                        window.location.href = '/mmdemo/login';
-                    } else {
-                        showError('加载数据失败');
-                    }
+                    // 错误处理已由 API.handleError 处理
                 }
             }
         }
 
         async function handleSubmit(event) {
             event.preventDefault();
-
             const formData = {
                 name: document.getElementById('name').value,
                 category: document.getElementById('category').value,
@@ -119,30 +92,21 @@
             };
 
             try {
-                let response;
-                if (dataId) {
-                    response = await axios.put(`${API_BASE_URL}/data/${dataId}`, formData);
-                } else {
-                    response = await axios.post(`${API_BASE_URL}/data`, formData);
-                }
+                const response = await API.makeRequest(
+                    dataId ? `/data/${dataId}` : '/data',
+                    dataId ? {...formData, id: dataId} : formData,
+                    dataId ? 'PUT' : 'POST'
+                );
 
-                if (response.data.success) {
-                    window.location.href = '/mmdemo/data';
+                if (response.success) {
+                    API.showSuccess('保存成功');
+                    setTimeout(() => window.location.href = '${BASE_PATH}/data', 1500);
                 }
             } catch (error) {
-                showError(error.response?.data?.message || '保存失败');
-            }
+                // 错误处理已由 API.handleError 处理
+        }
         }
 
-        function showError(message) {
-            const errorDiv = document.getElementById('errorMessage');
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-        }
-
-        // 在页面加载时调用
-        loadUserInfo();
+        // 页面加载时执行
         loadData();
     </script>
-</body>
-</html>

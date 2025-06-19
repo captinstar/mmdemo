@@ -10,17 +10,12 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="#"><i class="fas fa-tachometer-alt"></i> 系统控制台</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+            <a class="navbar-brand" href="#"><i class="fas fa-tachometer-alt"></i> <span
+                    id="dashboardTitle">系统控制台</span></a>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" href="/mmdemo/dashboard"><i class="fas fa-home"></i> 首页</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" onclick="loadDataManagement()"><i class="fas fa-database"></i> 数据管理</a>
+                        <a class="nav-link active" href="/dashboard"><i class="fas fa-home"></i> 首页</a>
                     </li>
                 </ul>
                 <ul class="navbar-nav">
@@ -34,117 +29,38 @@
         </div>
     </nav>
 
-    <div class="container mt-4">
-        <div id="mainContent">
-            <div class="row">
-                <div class="col-12 mb-4">
-                    <h2>欢迎来到控制面板</h2>
-                    <p>请选择以下功能模块：</p>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-body text-center">
-                            <div class="card-icon">
-                                <i class="fas fa-database"></i>
-                            </div>
-                            <h5 class="card-title">数据管理</h5>
-                            <p class="card-text">管理系统数据，包括添加、编辑、删除等操作</p>
-                            <button class="btn btn-primary" onclick="loadDataManagement()">进入管理</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-body text-center">
-                            <div class="card-icon">
-                                <i class="fas fa-chart-bar"></i>
-                            </div>
-                            <h5 class="card-title">数据统计</h5>
-                            <p class="card-text">查看系统数据统计信息和分析报告</p>
-                            <button class="btn btn-primary" onclick="loadStatistics()">查看统计</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-body text-center">
-                            <div class="card-icon">
-                                <i class="fas fa-cog"></i>
-                            </div>
-                            <h5 class="card-title">系统设置</h5>
-                            <p class="card-text">管理用户账户和系统配置</p>
-                            <button class="btn btn-primary" onclick="loadUserManagement()">用户管理</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="container mt-4" id="dashboardContent">
+        <!-- 仪表盘内容将通过API动态加载 -->
     </div>
-
+    <script src="static/js/api-config.js"></script>
     <script>
-        const API_BASE_URL = '/mmdemo/api';
+        async function loadDashboardData() {
+            try {
+                const response = await API.makeRequest('/dashboard');
+                if (response.success) {
+                    const dashboardData = response.dashboardData;
+                    document.getElementById('dashboardTitle').textContent = dashboardData.title;
+                    // 构建仪表盘内容
+                }
+            } catch (error) {
+                // 错误处理已经在 API.makeRequest 中完成
+            }
+        }
 
         async function handleLogout(event) {
             event.preventDefault();
             try {
-                const response = await axios.post(`${API_BASE_URL}/logout`);
-                if (response.data.success) {
-                    window.location.href = '/mmdemo/login';
+                const response = await API.makeRequest('/logout');
+                if (response.success) {
+                    window.location.href = '${BASE_PATH}/login';
                 }
             } catch (error) {
-                console.error('退出失败:', error);
-                alert('退出失败，请重试');
+                // 错误处理已经在 API.makeRequest 中完成
             }
         }
 
-        async function checkAuth() {
-            try {
-                const response = await axios.get(`${API_BASE_URL}/check-auth`);
-                if (!response.data.success) {
-                    window.location.href = '/mmdemo/login';
-                }
-            } catch (error) {
-                window.location.href = '/mmdemo/login';
-            }
-        }
-
-        async function loadDataManagement() {
-            try {
-                const response = await axios.get(`${API_BASE_URL}/data`);
-                document.getElementById('mainContent').innerHTML = response.data.html;
-            } catch (error) {
-                console.error('加载数据管理失败:', error);
-                alert('加载失败，请重试');
-            }
-        }
-
-        async function loadStatistics() {
-            try {
-                const response = await axios.get(`${API_BASE_URL}/statistics`);
-                document.getElementById('mainContent').innerHTML = response.data.html;
-            } catch (error) {
-                console.error('加载统计数据失败:', error);
-                alert('加载失败，请重试');
-            }
-        }
-
-        async function loadUserManagement() {
-            try {
-                const response = await axios.get(`${API_BASE_URL}/users`);
-                document.getElementById('mainContent').innerHTML = response.data.html;
-            } catch (error) {
-                console.error('加载用户管理失败:', error);
-                alert('加载失败，请重试');
-            }
-        }
-
-        // 页面加载时检查认证状态
-        checkAuth();
+        // 页面加载时获取仪表盘数据
+        loadDashboardData();
     </script>
 </body>
 </html>

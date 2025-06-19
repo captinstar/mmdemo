@@ -5,14 +5,11 @@
     <title>登录</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <style>
-        /* 保持原有样式 */
-    </style>
 </head>
 <body>
     <div class="container">
         <div class="login-container">
-            <h2 class="login-title">系统登录</h2>
+            <h2 class="login-title" id="pageTitle">系统登录</h2>
             <div class="error-message" id="errorMessage" style="display: none;"></div>
 
             <form id="loginForm" onsubmit="handleLogin(event)">
@@ -25,50 +22,43 @@
                     <input class="form-control" id="password" required type="password">
                 </div>
                 <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-primary btn-login">
-                        <i class="fas fa-sign-in-alt"></i> 登录
-                    </button>
-                    <a class="btn btn-outline-primary" href="/register">
-                        <i class="fas fa-user-plus"></i> 注册新用户
-                    </a>
+                    <button class="btn btn-primary btn-login" type="submit">登录</button>
+                    <a class="btn btn-outline-primary" href="/register">注册新用户</a>
                 </div>
             </form>
-            <div class="alert alert-success mt-3" id="registerSuccess" role="alert" style="display: none;">
-                注册成功！请使用新账号登录。
-            </div>
         </div>
     </div>
-
+    <!-- 修改 js 引用路径 -->
+    <script src="static/js/api-config.js"></script>
     <script>
         async function handleLogin(event) {
             event.preventDefault();
-
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-
             try {
-                // 在login.html中修改axios请求路径
-                const response = await axios.post('/mmdemo/api/login', {
-                    username: username,
-                    password: password
+                const response = await API.makeRequest('/login', {
+                    username: document.getElementById('username').value,
+                    password: document.getElementById('password').value
                 });
-
-                // 在login.html中的handleLogin函数中修改重定向路径
-                if (response.data.success) {
-                    window.location.href = '/mmdemo/dashboard';  // 添加上下文路径
+                if (response.success) {
+                    window.location.href = `${BASE_PATH}/dashboard`;
                 }
             } catch (error) {
-                const errorMessage = error.response?.data?.message || '登录失败，请重试';
-                document.getElementById('errorMessage').textContent = errorMessage;
-                document.getElementById('errorMessage').style.display = 'block';
+                // 错误处理已经在 API.makeRequest 中完成
             }
         }
 
-        // 检查URL参数显示注册成功消息
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('registered')) {
-            document.getElementById('registerSuccess').style.display = 'block';
+        async function loadPageData() {
+            try {
+                const response = await API.makeRequest('/pages/login-data');  // 路径已经正确
+                if (response.success) {
+                    document.getElementById('pageTitle').textContent = response.pageData.title;
+                }
+            } catch (error) {
+                console.error('加载页面数据失败:', error);
+            }
         }
+
+        // 页面加载时获取数据
+        loadPageData();
     </script>
 </body>
 </html>

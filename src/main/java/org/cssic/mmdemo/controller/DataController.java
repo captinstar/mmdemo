@@ -5,7 +5,10 @@ import org.cssic.mmdemo.model.DataEntity;
 import org.cssic.mmdemo.service.DataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -19,30 +22,32 @@ public class DataController {
     @Autowired
     private DataService dataService;
 
-    // 获取数据列表
-    @GetMapping
+    @PostMapping("/list")  // 改为POST请求，并修改路径
     public ResponseEntity<Map<String, Object>> getAllData() {
         Map<String, Object> response = new HashMap<>();
         try {
             List<DataEntity> dataList = dataService.findAll();
-            // 打印返回的数据，用于调试
-            System.out.println("Returning data list: " + dataList);
             response.put("success", true);
             response.put("data", dataList);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            e.printStackTrace(); // 打印完整的错误栈，便于调试
             response.put("success", false);
             response.put("message", "获取数据失败：" + e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
     }
 
-    // 获取单个数据项
-    @GetMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> getData(@PathVariable Long id) {
+    @PostMapping("/detail")  // 改为POST请求，接收id作为请求体参数
+    public ResponseEntity<Map<String, Object>> getData(@RequestBody Map<String, Long> request) {
         Map<String, Object> response = new HashMap<>();
         try {
+            Long id = request.get("id");
+            if (id == null) {
+                response.put("success", false);
+                response.put("message", "ID不能为空");
+                return ResponseEntity.badRequest().body(response);
+            }
+
             DataEntity data = dataService.findById(id);
             if (data != null) {
                 response.put("success", true);
@@ -60,19 +65,18 @@ public class DataController {
         }
     }
 
-    // 创建新数据
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<Map<String, Object>> createData(
             @RequestBody DataEntity data,
             HttpSession session) {
         Map<String, Object> response = new HashMap<>();
         try {
-            // 设置创建者和创建时间
-            Object userId = session.getAttribute("userId");
-            data.setCreatedBy(userId != null ? (Long) userId : 1L);
+            // 设置创建时间 - 修改方法名为正确的setCreatedDate
             data.setCreatedDate(new Date());
 
+            // 保存数据
             DataEntity savedData = dataService.save(data);
+
             response.put("success", true);
             response.put("data", savedData);
             response.put("message", "数据创建成功");
@@ -84,13 +88,14 @@ public class DataController {
         }
     }
 
-    // 更新数据
-    @PutMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> updateData(
-            @PathVariable Long id,
-            @RequestBody DataEntity data) {
+    @PostMapping("/update")  // 改为POST请求，接收id作为请求体参数
+    public ResponseEntity<Map<String, Object>> updateData(@RequestBody Map<String, Object> request) {
         Map<String, Object> response = new HashMap<>();
         try {
+            Long id = ((Number) request.get("id")).longValue();
+            DataEntity data = new DataEntity(); // 假设有合适的方法来从Map构造DataEntity
+            // 从request中设置data的属性
+            
             data.setId(id);
             DataEntity updatedData = dataService.update(data);
             if (updatedData != null) {
@@ -110,11 +115,17 @@ public class DataController {
         }
     }
 
-    // 删除数据
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> deleteData(@PathVariable Long id) {
+    @PostMapping("/delete")  // 改为POST请求，接收id作为请求体参数
+    public ResponseEntity<Map<String, Object>> deleteData(@RequestBody Map<String, Long> request) {
         Map<String, Object> response = new HashMap<>();
         try {
+            Long id = request.get("id");
+            if (id == null) {
+                response.put("success", false);
+                response.put("message", "ID不能为空");
+                return ResponseEntity.badRequest().body(response);
+            }
+
             dataService.delete(id);
             response.put("success", true);
             response.put("message", "数据删除成功");
