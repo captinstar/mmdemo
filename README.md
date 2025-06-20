@@ -64,7 +64,7 @@ java -jar target/mmdemo-0.0.1-SNAPSHOT.jar
 
 ### 访问应用
 
-应用运行后，可通过浏览器访问: http://localhost:8080
+应用运行后，可通过浏览器访问: http://localhost:8081
 
 ### 默认账户
 
