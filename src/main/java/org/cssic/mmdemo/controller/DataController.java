@@ -1,5 +1,6 @@
 package org.cssic.mmdemo.controller;
 
+import jakarta.servlet.http.HttpSession;
 import org.cssic.mmdemo.model.DataEntity;
 import org.cssic.mmdemo.model.User;
 import org.cssic.mmdemo.service.DataService;
@@ -9,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import jakarta.servlet.http.HttpSession;
 
 import java.util.Date;
 import java.util.List;
@@ -29,7 +29,6 @@ public class DataController {
 
     @GetMapping("")
     public String list(Model model, HttpSession session) {
-        // 用户身份验证逻辑重复
         User user = (User) session.getAttribute("user");
         if (user == null) {
             return "redirect:/login";
@@ -54,7 +53,6 @@ public class DataController {
 
     @PostMapping("/add")
     public String add(@ModelAttribute DataEntity data, HttpSession session) {
-        // 用户身份验证逻辑重复
         User user = (User) session.getAttribute("user");
         if (user == null) {
             return "redirect:/login";
@@ -73,7 +71,6 @@ public class DataController {
 
     @GetMapping("/view/{id}")
     public String view(@PathVariable Long id, Model model, HttpSession session) {
-        // 用户身份验证逻辑重复
         User user = (User) session.getAttribute("user");
         if (user == null) {
             return "redirect:/login";
@@ -92,7 +89,6 @@ public class DataController {
 
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable Long id, Model model, HttpSession session) {
-        // 用户身份验证逻辑重复
         User user = (User) session.getAttribute("user");
         if (user == null) {
             return "redirect:/login";
@@ -113,7 +109,6 @@ public class DataController {
 
     @PostMapping("/edit/{id}")
     public String edit(@PathVariable Long id, @ModelAttribute DataEntity data, HttpSession session) {
-        // 用户身份验证逻辑重复
         User user = (User) session.getAttribute("user");
         if (user == null) {
             return "redirect:/login";
@@ -142,7 +137,6 @@ public class DataController {
 
     @GetMapping("/delete/{id}")
     public String delete(@PathVariable Long id, HttpSession session) {
-        // 用户身份验证逻辑重复
         User user = (User) session.getAttribute("user");
         if (user == null) {
             return "redirect:/login";
