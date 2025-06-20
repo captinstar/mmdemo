@@ -1,328 +1,81 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>数据统计 - 数据管理系统</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
 
-    <!-- Tailwind配置（保持不变） -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#3B82F6',
-                        secondary: '#64748B',
-                        accent: '#10B981',
-                        neutral: '#F3F4F6',
-                        dark: '#1F2937'
-                    },
-                    fontFamily: {
-                        inter: ['Inter', 'system-ui', 'sans-serif'],
-                    },
-                }
-            }
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        .card {
+            transition: transform 0.2s;
+            margin-bottom: 20px;
         }
-    </script>
 
-    <!-- 自定义工具类 -->
-    <style type="text/tailwindcss">
-        @layer utilities {
-            .card-shadow {
-                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            }
-            .card-hover {
-                transition: transform 0.3s ease, box-shadow 0.3s ease;
-            }
-            .card-hover:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            }
-            .icon-container {
-                width: 64px;
-                height: 64px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 50%;
-                margin: 0 auto 1rem;
-            }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: #0d6efd;
+        }
+
+        .header {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #dee2e6;
         }
     </style>
 </head>
-<body class="bg-gray-50 font-inter">
-<!-- 页面容器 -->
-<div class="min-h-screen flex flex-col">
-    <!-- 导航栏 -->
-    <nav class="bg-white shadow-md sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <a href="#" class="flex-shrink-0 flex items-center">
-                        <i class="fa fa-line-chart text-primary text-2xl mr-2"></i>
-                        <span class="font-bold text-xl text-dark">数据管理系统</span>
-                    </a>
-                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-                        <a href="#" class="border-b-2 border-primary px-1 pt-1 inline-flex items-center text-sm font-medium text-primary">
-                            <i class="fa fa-tachometer mr-1"></i> 仪表盘
-                        </a>
-                        <a href="#" class="border-transparent hover:border-gray-300 border-b-2 px-1 pt-1 inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors duration-200">
-                            <i class="fa fa-database mr-1"></i> 数据管理
-                        </a>
-                        <a href="#" class="border-transparent hover:border-gray-300 border-b-2 px-1 pt-1 inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors duration-200">
-                            <i class="fa fa-users mr-1"></i> 用户管理
-                        </a>
-                        <a href="#" class="border-transparent hover:border-gray-300 border-b-2 px-1 pt-1 inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors duration-200">
-                            <i class="fa fa-cog mr-1"></i> 系统设置
-                        </a>
-                    </div>
-                </div>
-                <div class="flex items-center">
-                    <button class="p-2 rounded-full text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-                        <i class="fa fa-bell"></i>
-                    </button>
-                    <div class="ml-3 relative">
-                        <div>
-                            <button class="flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary" id="user-menu-button">
-                                <img class="h-8 w-8 rounded-full object-cover" src="https://picsum.photos/200/200?random=1" alt="用户头像">
-                            </button>
-                        </div>
-                    </div>
-                </div>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/mmdemo/dashboard}"><i class="fas fa-tachometer-alt"></i> 系统控制台</a>
+        <button class="navbar-toggler" data-bs-target="#navbarNav" data-bs-toggle="collapse" type="button">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/dashboard}"><i class="fas fa-home"></i> 首页</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/data}"><i class="fas fa-database"></i> 数据管理</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/login}"><i class="fas fa-sign-out-alt"></i> 退出</a>
+                </li>
+            </ul>
             </div>
         </div>
     </nav>
 
-    <!-- 主要内容 -->
-    <main class="flex-grow p-4 sm:p-6 lg:p-8">
-        <div class="max-w-7xl mx-auto">
-            <!-- 页面标题 -->
-            <div class="mb-8">
-                <h1 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-gray-800 mb-2">数据分析中心</h1>
-                <p class="text-gray-600">查看系统关键指标和数据趋势</p>
-            </div>
-
-            <!-- 统计卡片区域 -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- 数据统计卡片 -->
-                <div class="bg-white rounded-xl overflow-hidden card-shadow card-hover">
-                    <div class="p-6 text-center">
-                        <div class="icon-container bg-blue-100 text-primary mb-4">
-                            <i class="fas fa-chart-bar text-2xl"></i>
-                        </div>
-                        <h3 class="text-lg font-semibold text-gray-800 mb-2">数据统计</h3>
-                        <p class="text-gray-600 text-sm mb-4">查看系统数据统计信息和分析报告</p>
-                        <a href="/mmdemo/statistics" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-200">
-                            <i class="fa fa-line-chart mr-2"></i> 查看统计
-                        </a>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="card-icon">
+                        <i class="fas fa-users"></i>
                     </div>
-                </div>
-
-                <!-- 用户分析卡片 -->
-                <div class="bg-white rounded-xl overflow-hidden card-shadow card-hover">
-                    <div class="p-6 text-center">
-                        <div class="icon-container bg-green-100 text-accent mb-4">
-                            <i class="fas fa-users text-2xl"></i>
-                        </div>
-                        <h3 class="text-lg font-semibold text-gray-800 mb-2">用户分析</h3>
-                        <p class="text-gray-600 text-sm mb-4">了解用户行为和人口统计数据</p>
-                        <a href="/mmdemo/user-analysis" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-accent hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition-all duration-200">
-                            <i class="fa fa-user-circle mr-2"></i> 查看分析
-                        </a>
-                    </div>
-                </div>
-
-                <!-- 销售趋势卡片 -->
-                <div class="bg-white rounded-xl overflow-hidden card-shadow card-hover">
-                    <div class="p-6 text-center">
-                        <div class="icon-container bg-purple-100 text-purple-600 mb-4">
-                            <i class="fas fa-shopping-cart text-2xl"></i>
-                        </div>
-                        <h3 class="text-lg font-semibold text-gray-800 mb-2">销售趋势</h3>
-                        <p class="text-gray-600 text-sm mb-4">分析销售数据和收入趋势</p>
-                        <a href="/mmdemo/sales" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-600 transition-all duration-200">
-                            <i class="fa fa-chart-line mr-2"></i> 查看趋势
-                        </a>
-                    </div>
-                </div>
-
-                <!-- 系统日志卡片 -->
-                <div class="bg-white rounded-xl overflow-hidden card-shadow card-hover">
-                    <div class="p-6 text-center">
-                        <div class="icon-container bg-yellow-100 text-yellow-600 mb-4">
-                            <i class="fas fa-file-alt text-2xl"></i>
-                        </div>
-                        <h3 class="text-lg font-semibold text-gray-800 mb-2">系统日志</h3>
-                        <p class="text-gray-600 text-sm mb-4">查看系统操作记录和审计信息</p>
-                        <a href="/mmdemo/logs" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-600 transition-all duration-200">
-                            <i class="fa fa-history mr-2"></i> 查看日志
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 数据图表区域 -->
-            <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- 主要图表 -->
-                <div class="lg:col-span-2 bg-white rounded-xl p-6 card-shadow">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-lg font-semibold text-gray-800">业务趋势分析</h3>
-                        <div class="flex space-x-2">
-                            <button class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors duration-200">日</button>
-                            <button class="px-3 py-1 text-sm bg-primary text-white rounded-md">周</button>
-                            <button class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors duration-200">月</button>
-                            <button class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors duration-200">年</button>
-                        </div>
-                    </div>
-                    <div class="h-80">
-                        <!-- 图表将在这里渲染 -->
-                        <canvas id="trendChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- 数据概览 -->
-                <div class="bg-white rounded-xl p-6 card-shadow">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">数据概览</h3>
-                    <div class="space-y-4">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 bg-blue-100 p-3 rounded-full">
-                                <i class="fa fa-users text-primary"></i>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-500">总用户数</p>
-                                <p class="text-2xl font-semibold text-gray-800">12,845</p>
-                            </div>
-                            <div class="ml-auto text-green-500">
-                                <i class="fa fa-arrow-up"></i> 12%
-                            </div>
-                        </div>
-
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 bg-green-100 p-3 rounded-full">
-                                <i class="fa fa-shopping-bag text-accent"></i>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-500">订单总数</p>
-                                <p class="text-2xl font-semibold text-gray-800">5,782</p>
-                            </div>
-                            <div class="ml-auto text-green-500">
-                                <i class="fa fa-arrow-up"></i> 8%
-                            </div>
-                        </div>
-
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 bg-purple-100 p-3 rounded-full">
-                                <i class="fa fa-credit-card text-purple-600"></i>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-500">总收入</p>
-                                <p class="text-2xl font-semibold text-gray-800">¥145,930</p>
-                            </div>
-                            <div class="ml-auto text-green-500">
-                                <i class="fa fa-arrow-up"></i> 16%
-                            </div>
-                        </div>
-
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 bg-yellow-100 p-3 rounded-full">
-                                <i class="fa fa-clock-o text-yellow-600"></i>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-500">平均响应时间</p>
-                                <p class="text-2xl font-semibold text-gray-800">0.8s</p>
-                            </div>
-                            <div class="ml-auto text-red-500">
-                                <i class="fa fa-arrow-down"></i> 3%
-                            </div>
-                        </div>
-                    </div>
+                    <h5 class="card-title">总用户数</h5>
+                    <p class="h2">12,845</p>
+                    <p class="text-success"><i class="fas fa-arrow-up"></i> 12%</p>
                 </div>
             </div>
         </div>
-    </main>
-
-    <!-- 页脚 -->
-    <footer class="bg-white border-t border-gray-200 py-4">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-                <div class="text-center md:text-left mb-4 md:mb-0">
-                    <p class="text-sm text-gray-500">© 2025 数据管理系统. 保留所有权利.</p>
-                </div>
-                <div class="flex space-x-6">
-                    <a href="#" class="text-gray-400 hover:text-gray-500 transition-colors duration-200">
-                        <i class="fa fa-github text-xl"></i>
-                    </a>
-                    <a href="#" class="text-gray-400 hover:text-gray-500 transition-colors duration-200">
-                        <i class="fa fa-twitter text-xl"></i>
-                    </a>
-                    <a href="#" class="text-gray-400 hover:text-gray-500 transition-colors duration-200">
-                        <i class="fa fa-linkedin text-xl"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </footer>
+    </div>
 </div>
 
-<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
-
-<!-- 初始化图表 -->
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const ctx = document.getElementById('trendChart').getContext('2d');
-
-        const trendChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
-                datasets: [
-                    {
-                        label: '访问量',
-                        data: [1200, 1900, 1700, 2100, 2500, 2800, 2400],
-                        borderColor: '#3B82F6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        tension: 0.3,
-                        fill: true
-                    },
-                    {
-                        label: '销售额',
-                        data: [5000, 6200, 5800, 7500, 8200, 9500, 8800],
-                        borderColor: '#10B981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        tension: 0.3,
-                        fill: true
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                },
-                interaction: {
-                    mode: 'nearest',
-                    axis: 'x',
-                    intersect: false
-                }
-            }
-        });
-    });
-</script>
 </body>
 </html>

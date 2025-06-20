@@ -15,7 +15,7 @@ public class DatabaseConfig {
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
         dataSource.setUrl("jdbc:mysql://localhost:3306/mmdemodb?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf-8");
         dataSource.setUsername("root");
-        dataSource.setPassword("wcc12245210");
+        dataSource.setPassword("123456");
         return dataSource;
     }
 }
